@@ -1,93 +1,88 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/bigpandaboy2/project-management-service/internal/app/models"
 	"github.com/bigpandaboy2/project-management-service/internal/app/services"
-	"github.com/bigpandaboy2/project-management-service/internal/app/utils"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 )
 
-func GetProjects(w http.ResponseWriter, r *http.Request) {
+func GetProjects(c *gin.Context) {
     projects, err := services.GetAllProjects()
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
-    utils.JSONResponse(w, projects, http.StatusOK)
+    c.JSON(http.StatusOK, projects)
 }
 
-func CreateProject(w http.ResponseWriter, r *http.Request) {
+func CreateProject(c *gin.Context) {
     var project models.Project
-    if err := json.NewDecoder(r.Body).Decode(&project); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+    if err := c.ShouldBindJSON(&project); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     project.ID = uuid.New()
     if err := services.CreateProject(&project); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    utils.JSONResponse(w, project, http.StatusCreated)
+    c.JSON(http.StatusCreated, project)
 }
 
-func GetProject(w http.ResponseWriter, r *http.Request) {
-    params := mux.Vars(r)
-    id, err := uuid.Parse(params["id"])
+func GetProject(c *gin.Context) {
+    id, err := uuid.Parse(c.Param("id"))
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     project, err := services.GetProject(id)
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusNotFound)
+        c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
         return
     }
 
-    utils.JSONResponse(w, project, http.StatusOK)
+    c.JSON(http.StatusOK, project)
 }
 
-func UpdateProject(w http.ResponseWriter, r *http.Request) {
-    params := mux.Vars(r)
-    id, err := uuid.Parse(params["id"])
+func UpdateProject(c *gin.Context) {
+    id, err := uuid.Parse(c.Param("id"))
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     var project models.Project
-    if err := json.NewDecoder(r.Body).Decode(&project); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+    if err := c.ShouldBindJSON(&project); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     project.ID = id
     if err := services.UpdateProject(&project); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    utils.JSONResponse(w, project, http.StatusOK)
+    c.JSON(http.StatusOK, project)
 }
 
-func DeleteProject(w http.ResponseWriter, r *http.Request) {
-    params := mux.Vars(r)
-    id, err := uuid.Parse(params["id"])
+func DeleteProject(c *gin.Context) {
+    id, err := uuid.Parse(c.Param("id"))
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     if err := services.DeleteProject(id); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    utils.JSONResponse(w, map[string]string{"message": "Project deleted successfully"}, http.StatusOK)
+    c.JSON(http.StatusOK, gin.H{"message": "Project deleted successfully"})
 }

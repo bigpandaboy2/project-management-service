@@ -1,93 +1,88 @@
 package controllers
 
 import (
-    "encoding/json"
-    "net/http"
+	"net/http"
 
-    "github.com/bigpandaboy2/project-management-service/internal/app/models"
-    "github.com/bigpandaboy2/project-management-service/internal/app/services"
-    "github.com/bigpandaboy2/project-management-service/internal/app/utils"
-    "github.com/google/uuid"
-    "github.com/gorilla/mux"
+	"github.com/bigpandaboy2/project-management-service/internal/app/models"
+	"github.com/bigpandaboy2/project-management-service/internal/app/services"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
-func GetTasks(w http.ResponseWriter, r *http.Request) {
+func GetTasks(c *gin.Context) {
     tasks, err := services.GetAllTasks()
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
-    utils.JSONResponse(w, tasks, http.StatusOK)
+    c.JSON(http.StatusOK, tasks)
 }
 
-func CreateTask(w http.ResponseWriter, r *http.Request) {
+func CreateTask(c *gin.Context) {
     var task models.Task
-    if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+    if err := c.ShouldBindJSON(&task); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     task.ID = uuid.New()
     if err := services.CreateTask(&task); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    utils.JSONResponse(w, task, http.StatusCreated)
+    c.JSON(http.StatusCreated, task)
 }
 
-func GetTask(w http.ResponseWriter, r *http.Request) {
-    params := mux.Vars(r)
-    id, err := uuid.Parse(params["id"])
+func GetTask(c *gin.Context) {
+    id, err := uuid.Parse(c.Param("id"))
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     task, err := services.GetTask(id)
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusNotFound)
+        c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
         return
     }
 
-    utils.JSONResponse(w, task, http.StatusOK)
+    c.JSON(http.StatusOK, task)
 }
 
-func UpdateTask(w http.ResponseWriter, r *http.Request) {
-    params := mux.Vars(r)
-    id, err := uuid.Parse(params["id"])
+func UpdateTask(c *gin.Context) {
+    id, err := uuid.Parse(c.Param("id"))
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     var task models.Task
-    if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+    if err := c.ShouldBindJSON(&task); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     task.ID = id
     if err := services.UpdateTask(&task); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    utils.JSONResponse(w, task, http.StatusOK)
+    c.JSON(http.StatusOK, task)
 }
 
-func DeleteTask(w http.ResponseWriter, r *http.Request) {
-    params := mux.Vars(r)
-    id, err := uuid.Parse(params["id"])
+func DeleteTask(c *gin.Context) {
+    id, err := uuid.Parse(c.Param("id"))
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     if err := services.DeleteTask(id); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    utils.JSONResponse(w, map[string]string{"message": "Task deleted successfully"}, http.StatusOK)
+    c.JSON(http.StatusOK, gin.H{"message": "Task deleted successfully"})
 }

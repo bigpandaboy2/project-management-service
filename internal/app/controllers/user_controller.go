@@ -1,93 +1,88 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/bigpandaboy2/project-management-service/internal/app/models"
 	"github.com/bigpandaboy2/project-management-service/internal/app/services"
-	"github.com/bigpandaboy2/project-management-service/internal/app/utils"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 )
 
-func GetUsers(w http.ResponseWriter, r *http.Request) {
+func GetUsers(c *gin.Context) {
     users, err := services.GetAllUsers()
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
-    utils.JSONResponse(w, users, http.StatusOK)
+    c.JSON(http.StatusOK, users)
 }
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+func CreateUser(c *gin.Context) {
     var user models.User
-    if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+    if err := c.ShouldBindJSON(&user); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     user.ID = uuid.New()
     if err := services.CreateUser(&user); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    utils.JSONResponse(w, user, http.StatusCreated)
+    c.JSON(http.StatusCreated, user)
 }
 
-func GetUser(w http.ResponseWriter, r *http.Request) {
-    params := mux.Vars(r)
-    id, err := uuid.Parse(params["id"])
+func GetUser(c *gin.Context) {
+    id, err := uuid.Parse(c.Param("id"))
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     user, err := services.GetUser(id)
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusNotFound)
+        c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
         return
     }
 
-    utils.JSONResponse(w, user, http.StatusOK)
+    c.JSON(http.StatusOK, user)
 }
 
-func UpdateUser(w http.ResponseWriter, r *http.Request) {
-    params := mux.Vars(r)
-    id, err := uuid.Parse(params["id"])
+func UpdateUser(c *gin.Context) {
+    id, err := uuid.Parse(c.Param("id"))
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     var user models.User
-    if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+    if err := c.ShouldBindJSON(&user); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     user.ID = id
     if err := services.UpdateUser(&user); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    utils.JSONResponse(w, user, http.StatusOK)
+    c.JSON(http.StatusOK, user)
 }
 
-func DeleteUser(w http.ResponseWriter, r *http.Request) {
-    params := mux.Vars(r)
-    id, err := uuid.Parse(params["id"])
+func DeleteUser(c *gin.Context) {
+    id, err := uuid.Parse(c.Param("id"))
     if err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusBadRequest)
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     if err := services.DeleteUser(id); err != nil {
-        utils.JSONResponse(w, err.Error(), http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    utils.JSONResponse(w, map[string]string{"message": "User deleted successfully"}, http.StatusOK)
+    c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }

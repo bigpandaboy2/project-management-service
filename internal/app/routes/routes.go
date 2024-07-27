@@ -1,30 +1,35 @@
 package routes
 
 import (
-    "github.com/gorilla/mux"
     "github.com/bigpandaboy2/project-management-service/internal/app/controllers"
+    "github.com/gin-gonic/gin"
 )
 
-func SetupRouter() *mux.Router {
-    r := mux.NewRouter()
+func SetupRouter(router *gin.Engine) {
+    userGroup := router.Group("/users")
+    {
+        userGroup.GET("/", controllers.GetUsers)
+        userGroup.POST("/", controllers.CreateUser)
+        userGroup.GET("/:id", controllers.GetUser)
+        userGroup.PUT("/:id", controllers.UpdateUser)
+        userGroup.DELETE("/:id", controllers.DeleteUser)
+    }
 
-    r.HandleFunc("/users", controllers.GetUsers).Methods("GET")
-    r.HandleFunc("/users", controllers.CreateUser).Methods("POST")
-    r.HandleFunc("/users/{id}", controllers.GetUser).Methods("GET")
-    r.HandleFunc("/users/{id}", controllers.UpdateUser).Methods("PUT")
-    r.HandleFunc("/users/{id}", controllers.DeleteUser).Methods("DELETE")
-    
-    r.HandleFunc("/tasks", controllers.GetTasks).Methods("GET")
-    r.HandleFunc("/tasks", controllers.CreateTask).Methods("POST")
-    r.HandleFunc("/tasks/{id}", controllers.GetTask).Methods("GET")
-    r.HandleFunc("/tasks/{id}", controllers.UpdateTask).Methods("PUT")
-    r.HandleFunc("/tasks/{id}", controllers.DeleteTask).Methods("DELETE")
-    
-    r.HandleFunc("/projects", controllers.GetProjects).Methods("GET")
-    r.HandleFunc("/projects", controllers.CreateProject).Methods("POST")
-    r.HandleFunc("/projects/{id}", controllers.GetProject).Methods("GET")
-    r.HandleFunc("/projects/{id}", controllers.UpdateProject).Methods("PUT")
-    r.HandleFunc("/projects/{id}", controllers.DeleteProject).Methods("DELETE")
+    taskGroup := router.Group("/tasks")
+    {
+        taskGroup.GET("/", controllers.GetTasks)
+        taskGroup.POST("/", controllers.CreateTask)
+        taskGroup.GET("/:id", controllers.GetTask)
+        taskGroup.PUT("/:id", controllers.UpdateTask)
+        taskGroup.DELETE("/:id", controllers.DeleteTask)
+    }
 
-    return r
+    projectGroup := router.Group("/projects")
+    {
+        projectGroup.GET("/", controllers.GetProjects)
+        projectGroup.POST("/", controllers.CreateProject)
+        projectGroup.GET("/:id", controllers.GetProject)
+        projectGroup.PUT("/:id", controllers.UpdateProject)
+        projectGroup.DELETE("/:id", controllers.DeleteProject)
+    }
 }
