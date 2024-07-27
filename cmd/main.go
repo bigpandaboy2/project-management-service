@@ -15,11 +15,7 @@ func main() {
     config.ConnectDB()
 
     router := gin.Default()
-
-    // Swagger documentation route
     router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-    // Register routes
     routes.SetupRouter(router)
 
     log.Println("Server is running on port 8080")

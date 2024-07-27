@@ -1,8 +1,8 @@
 package routes
 
 import (
-    "github.com/bigpandaboy2/project-management-service/internal/app/controllers"
-    "github.com/gin-gonic/gin"
+	"github.com/bigpandaboy2/project-management-service/internal/app/controllers"
+	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter(router *gin.Engine) {
